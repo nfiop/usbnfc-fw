@@ -42,7 +42,7 @@ void initialize_aux_uart_channel(void)
     // TODO: Implement this.
 }
 
-static void send_msg_on_uart_aux_channel(const char *msg)
+void send_msg_on_uart_aux_channel(const char *msg)
 {
     // TODO: Implement this.
     UNUSED(msg);
@@ -71,15 +71,6 @@ void *mem_zalloc(size_t mem_size)
 
     memset(new_mem, 0, mem_size);
     return new_mem;
-}
-
-void assert_with_msg(bool condition_has_met, const char *msg)
-{
-    if (!condition_has_met) {
-        send_msg_on_uart_aux_channel("Assertion failed!\n");
-        send_msg_on_uart_aux_channel(msg);
-        halt();
-    }
 }
 
 void halt(void)

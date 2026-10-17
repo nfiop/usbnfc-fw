@@ -24,10 +24,19 @@ void initialize_usb_stack(void);
 void initialize_aux_uart_channel(void);
 void initialize_cdc_uart_channel(void);
 
-void assert_with_msg(bool condition_has_met, const char *msg);
-#define ASSERT(__x) assert_with_msg(__x, TO_STRING(x))
+void send_msg_on_uart_aux_channel(const char *msg);
 
 void halt(void);
+
+inline void assert_with_msg(bool condition_has_met, const char *msg)
+{
+    if (!condition_has_met) {
+        send_msg_on_uart_aux_channel("Assertion failed!\n");
+        send_msg_on_uart_aux_channel(msg);
+        halt();
+    }
+}
+#define ASSERT(__x) assert_with_msg(__x, TO_STRING(x))
 
 void *mem_alloc(size_t);
 void *mem_alloc_counted(size_t, size_t);
