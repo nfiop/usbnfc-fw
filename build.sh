@@ -6,6 +6,11 @@ if [[ $# -ne 1 ]]; then
     exit 1
 fi
 
+# NOTE: TOOLCHAIN_HOST_PLATFORM might need further adjustments in the actual
+# config file, in case of architectures like aarch64 which can be referred as
+# arm64, for example.
+TOOLCHAIN_HOST_PLATFORM="$(uname -m)"
+
 PLATFORM="$1"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="${PROJECT_DIR}/build/${PLATFORM}"
