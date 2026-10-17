@@ -44,3 +44,11 @@ where needed -
 
    - Basic ECC support - mainly software Hamming & BCH, and hardware ECC
      (for Hamming and BCH) when platform allows.
+
+# License
+
+The project is licensed with multiple licenses -
+ - MIT license for `src` directory and user-utility code.
+ - GPLv2-only license for kernel module code.
+ - `GPL-2.0-only OR MIT` for include headers, utests and common user code. 
+
