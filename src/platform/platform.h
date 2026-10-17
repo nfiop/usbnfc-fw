@@ -24,6 +24,9 @@ void initialize_usb_stack(void);
 void initialize_aux_uart_channel(void);
 void initialize_cdc_uart_channel(void);
 
+void assert_with_msg(bool condition_has_met, const char *msg);
+#define ASSERT(__x) assert_with_msg(__x, TO_STRING(x))
+
 void halt(void);
 
 void *mem_alloc(size_t);

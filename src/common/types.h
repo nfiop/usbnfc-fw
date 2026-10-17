@@ -13,4 +13,6 @@
 
 #define UNUSED(__x) (void)__x
 
+#define TO_STRING(x) #x
+
 #endif

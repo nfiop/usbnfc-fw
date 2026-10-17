@@ -35,8 +35,8 @@ int app_main(void)
 
     mode = determine_platform_mode();
 
-    assert(mode == PLATFORM_MODE_CONFIGURATION || 
-        mode == PLATFORM_MODE_CONFIGURATION);
+    ASSERT(mode == PLATFORM_MODE_CONFIGURATION || 
+        mode == PLATFORM_MODE_NAND_CONTROLLER);
 
     if (mode == PLATFORM_MODE_CONFIGURATION)
         initialize_configuration_mode();
