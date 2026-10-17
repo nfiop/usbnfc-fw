@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
 target_link_libraries(usbnfc_fw
-    pico_stdlib 
+    pico_stdlib
+    pico_multicore
+    pico_sync
 )
 
 pico_enable_stdio_usb(usbnfc_fw 1)

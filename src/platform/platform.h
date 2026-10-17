@@ -24,6 +24,8 @@ void initialize_usb_stack(void);
 void initialize_aux_uart_channel(void);
 void initialize_cdc_uart_channel(void);
 
+void halt(void);
+
 void *mem_alloc(size_t);
 void *mem_alloc_counted(size_t, size_t);
 void *mem_zalloc(size_t);

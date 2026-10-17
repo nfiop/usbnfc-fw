@@ -6,6 +6,13 @@
 
 #include "platform/platform.h"
 
+#include "tusb.h"
+#include "pico/stdlib.h"
+#include "pico/multicore.h"
+#include "pico/mutex.h"
+#include "pico/time.h"
+#include "pico/sync.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,9 +24,17 @@ enum platform_mode determine_platform_mode(void)
     return PLATFORM_MODE_CONFIGURATION;
 }
 
+static void usb_worker(void)
+{
+    while (1) {
+        tud_task();  // Process USB events
+    }
+}
+
 void initialize_usb_stack(void)
 {
-    // TODO: Implement this.
+    tusb_init();
+    multicore_launch_core1(usb_worker);
 }
 
 void initialize_aux_uart_channel(void)
@@ -52,7 +67,16 @@ void *mem_zalloc(size_t mem_size)
     return new_mem;
 }
 
+void halt(void)
+{
+    while (true) {
+        __wfi();  // Wait for interrupt
+    }
+}
+
+
 int main(void)
 {
+    stdio_init_all();
     app_main();
 }
