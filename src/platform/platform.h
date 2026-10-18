@@ -27,13 +27,14 @@ void initialize_cdc_uart_channel(void);
 void send_msg_on_uart_aux_channel(const char *msg);
 
 void halt(void);
+void halt_all_cpus(void);
 
 inline void assert_with_msg(bool condition_has_met, const char *msg)
 {
     if (!condition_has_met) {
         send_msg_on_uart_aux_channel("Assertion failed!\n");
         send_msg_on_uart_aux_channel(msg);
-        halt();
+        halt_all_cpus();
     }
 }
 #define ASSERT(__x) assert_with_msg(__x, TO_STRING(x))
