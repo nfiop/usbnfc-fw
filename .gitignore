@@ -1,1 +1,5 @@
+# Build environment
 build/
+
+# Python environment
+.venv/
