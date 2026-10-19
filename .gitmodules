@@ -1,3 +1,9 @@
 [submodule "src/platform/rp2040/lib/pico-sdk"]
 	path = src/platform/rp2040/lib/pico-sdk
 	url = https://github.com/raspberrypi/pico-sdk.git
+[submodule "src/lib/cobs-c"]
+	path = src/lib/cobs-c
+	url = https://github.com/cmcqueen/cobs-c.git
+[submodule "src/lib/qcbor"]
+	path = src/lib/qcbor
+	url = https://github.com/laurencelundblade/QCBOR.git

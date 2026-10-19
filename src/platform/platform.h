@@ -15,16 +15,8 @@ enum platform_mode {
 
 enum platform_mode determine_platform_mode(void);
 
-/* Basic initialization of the USB stack, which will assist registering 
- * USB functions later on.
- */
-void initialize_usb_stack(void);
 
-/* Functions to initialize UART channels over USB */
-void initialize_aux_uart_channel(void);
-void initialize_cdc_uart_channel(void);
-
-void send_msg_on_uart_aux_channel(const char *msg);
+void send_msg_on_debug_uart(const char *msg);
 
 void halt(void);
 void halt_all_cpus(void);
@@ -32,8 +24,8 @@ void halt_all_cpus(void);
 inline void assert_with_msg(bool condition_has_met, const char *msg)
 {
     if (!condition_has_met) {
-        send_msg_on_uart_aux_channel("Assertion failed!\n");
-        send_msg_on_uart_aux_channel(msg);
+        send_msg_on_debug_uart("Assertion failed!\n");
+        send_msg_on_debug_uart(msg);
         halt_all_cpus();
     }
 }
@@ -42,6 +34,10 @@ inline void assert_with_msg(bool condition_has_met, const char *msg)
 void *mem_alloc(size_t);
 void *mem_alloc_counted(size_t, size_t);
 void *mem_zalloc(size_t);
+
+int config_uart_send_bytes(const uint8_t *data, size_t len);
+int config_uart_read_non_blocking(uint8_t *data, size_t max_len);
+void start_config_mode(void);
 
 /* This macro is inspired from the Linux kernel - it should allocate
  * a memory area and zero it afterwards.

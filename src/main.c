@@ -5,14 +5,8 @@
 
 #include "platform/platform.h"
 
-static void initialize_configuration_mode(void)
-{
-    initialize_cdc_uart_channel();
-}
-
-static void initialize_nand_mode(void)
-{
-}
+extern int config_main(void);
+extern int nand_nfc_main(void);
 
 /* First code to execute which is platform-agnostic. The platform-specific
  * init code should execute this after everything is stable and running -
@@ -26,23 +20,15 @@ int app_main(void)
 {
     enum platform_mode mode;
 
-    initialize_usb_stack();
-
-    /* The first USB endpoint is always the AUX channel, as it is commonly 
-     * shared between all modes.
-     */
-    initialize_aux_uart_channel();
-
     mode = determine_platform_mode();
 
     ASSERT(mode == PLATFORM_MODE_CONFIGURATION || 
         mode == PLATFORM_MODE_NAND_CONTROLLER);
 
-    if (mode == PLATFORM_MODE_CONFIGURATION)
-        initialize_configuration_mode();
-    else
-        initialize_nand_mode();
+    if (mode == PLATFORM_MODE_CONFIGURATION) {
+        config_main();
+    } else {
+    }
 
-    /* Go to idle, let the spawned tasks to handle async I/O from now on */
     halt();
 }

@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-set(PLATFORM_SOURCES ${CMAKE_CURRENT_LIST_DIR}/platform.c)
+set(PLATFORM_SOURCES 
+    ${CMAKE_CURRENT_LIST_DIR}/platform.c
+    ${CMAKE_CURRENT_LIST_DIR}/config_mode.c
+    ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c)
 
 # ${PICO_SDK_PATH} is declared in sdk.cmake file.
 set(PLATFORM_INCLUDES ${CMAKE_CURRENT_LIST_DIR}

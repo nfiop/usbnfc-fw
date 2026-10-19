@@ -13,11 +13,24 @@ include(${CMAKE_SOURCE_DIR}/platform/${CMAKE_PLATFORM}/platform.cmake)
 add_executable(usbnfc_fw
     ${PLATFORM_SOURCES}
     main.c
+    config.c
+
+    # QCBOR
+    lib/qcbor/src/UsefulBuf.c
+    lib/qcbor/src/ieee754.c
+    lib/qcbor/src/qcbor_encode.c
+    lib/qcbor/src/qcbor_decode.c
+
+    # COBS
+    lib/cobs-c/cobs.c
 )
 
 target_include_directories(usbnfc_fw PRIVATE
     ${CMAKE_SOURCE_DIR}
     ${PLATFORM_INCLUDES}
+
+    ${CMAKE_CURRENT_LIST_DIR}/lib/qcbor/inc
+    ${CMAKE_CURRENT_LIST_DIR}/lib/cobs-c
 )
 
 # Define libraries, dependecies, flags for the platform, after the project is

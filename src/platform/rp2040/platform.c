@@ -1,4 +1,3 @@
-
 /*
  * SPDX-License-Identifier: MIT
  * Copyright (c) 2026 Liav A
@@ -6,7 +5,6 @@
 
 #include "platform/platform.h"
 
-#include "tusb.h"
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 #include "pico/mutex.h"
@@ -27,35 +25,6 @@ enum platform_mode determine_platform_mode(void)
 {
     // TODO: Implement this.
     return PLATFORM_MODE_CONFIGURATION;
-}
-
-static void usb_worker(void)
-{
-    while (1) {
-        tud_task();  // Process USB events
-    }
-}
-
-void initialize_usb_stack(void)
-{
-    tusb_init();
-    multicore_launch_core1(usb_worker);
-}
-
-void initialize_aux_uart_channel(void)
-{
-    // TODO: Implement this.
-}
-
-void send_msg_on_uart_aux_channel(const char *msg)
-{
-    // TODO: Implement this.
-    UNUSED(msg);
-}
-
-void initialize_cdc_uart_channel(void)
-{
-    // TODO: Implement this.
 }
 
 void *mem_alloc(size_t mem_size)
@@ -84,6 +53,12 @@ static void halt_forever(void)
     while (true) {
         __asm volatile("nop");
     }
+}
+
+void send_msg_on_debug_uart(const char *msg)
+{
+    // TODO: Implement this.
+    UNUSED(msg);
 }
 
 void halt_all_cpus_from_core0(void)
