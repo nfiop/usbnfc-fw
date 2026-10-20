@@ -16,6 +16,8 @@ static queue_t tx_queue;  // application -> USB host
 
 static volatile bool usb_mounted = false;
 
+static void (*config_uart_rx_poll_timeout)(void);
+
 /* Called by TinyUSB when the host sends CDC data.
  * TinyUSB callbacks execute on core 1 in this design.
  */
@@ -52,6 +54,7 @@ bool cdc_connected(void)
 
 int config_uart_send_bytes(const uint8_t *data, size_t len)
 {
+    /* FIXME: Add error propagation in case of an error. */
     int n = 0;
 
     while (n < len && queue_try_add(&tx_queue, &data[n]))
@@ -62,6 +65,9 @@ int config_uart_send_bytes(const uint8_t *data, size_t len)
 
 int config_uart_read_non_blocking(uint8_t *data, size_t max_len)
 {
+    /* FIXME: Add error propagation in case of FIFO overrun condition
+     * or similar condition.
+     */
     size_t n = 0;
 
     while (n < max_len && queue_try_remove(&rx_queue, &data[n]))
@@ -78,6 +84,7 @@ static void config_mode_usb_worker(void)
     uint32_t written;
 
     for (;;) {
+        config_uart_rx_poll_timeout();
         tud_task();
 
         // Move queued application bytes into TinyUSB's TX FIFO.
@@ -110,12 +117,14 @@ static void config_mode_usb_worker(void)
     }
 }
 
-void start_config_mode(void)
+void start_config_mode(void (*rx_poll_timeout)(void))
 {
     queue_init(&rx_queue, sizeof(uint8_t), CDC_QUEUE_SIZE);
     queue_init(&tx_queue, sizeof(uint8_t), CDC_QUEUE_SIZE);
 
     tusb_init();
+
+    config_uart_rx_poll_timeout = rx_poll_timeout;
     
     multicore_launch_core1(config_mode_usb_worker);
 }

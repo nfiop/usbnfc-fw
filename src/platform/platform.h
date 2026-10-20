@@ -37,7 +37,7 @@ void *mem_zalloc(size_t);
 
 int config_uart_send_bytes(const uint8_t *data, size_t len);
 int config_uart_read_non_blocking(uint8_t *data, size_t max_len);
-void start_config_mode(void);
+void start_config_mode(void (*rx_poll_timeout)(void));
 
 /* This macro is inspired from the Linux kernel - it should allocate
  * a memory area and zero it afterwards.
