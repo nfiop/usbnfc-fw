@@ -18,6 +18,6 @@ echo "Installing dependencies..."
 
 "$PYTHON" -m pip install -q pyserial cbor2 cobs
 
-echo "Starting RP2040 CLI..." 
+echo "Starting CLI..." 
 
 exec $PYTHON $SCRIPT "$@"

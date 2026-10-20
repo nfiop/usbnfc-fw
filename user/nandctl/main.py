@@ -16,7 +16,7 @@ MAX_CBOR = 128
 MAX_RAW_FRAME = MAX_CBOR + CRC_SIZE
 
 def crc32_iso_hdlc(data: bytes) -> int:
-    """CRC-32/ISO-HDLC, compatible with the RP2040 firmware."""
+    """CRC-32/ISO-HDLC, compatible with the USB device firmware."""
     return zlib.crc32(data) & 0xFFFFFFFF
 
 def encode_packet(message: dict) -> bytes:
