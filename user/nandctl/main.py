@@ -116,15 +116,12 @@ def send_command(
             f"received {response.get('seq')}"
         )
 
-    if response.get("status") not in ("ACK", "NACK"):
-        raise ValueError(f"Invalid response status: {response.get('status')!r}")
-
     return response
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="RP2040 CBOR/COBS/CRC-32 command client"
+        description="CBOR/COBS/CRC-32 command client"
     )
     parser.add_argument("port", help="COM5 or /dev/ttyACM0")
     parser.add_argument("--baud", type=int, default=115200)
@@ -194,8 +191,8 @@ def main():
             try:
                 response = send_command(ser, seq, cmd, arg)
                 print(
-                    f"seq={seq} {response['status']}: "
-                    f"{response.get('result')!r}"
+                    f"seq={seq} {response['rc']}: "
+                    f"{response.get('ret_buf')!r}"
                 )
             except (
                 TimeoutError,

@@ -19,6 +19,7 @@
 #include "cobs.h"
 
 #include "platform/platform.h"
+#include "drivers/driver.h"
 
 /*
  * Frame format:
@@ -88,8 +89,9 @@ static uint32_t crc32_read_le(const uint8_t *src)
  * Response transmission
  * ========================================================= */
 static void send_response(int64_t seq,
-                          const char *status,
-                          const char *result)
+                          driver_cmd_rc_t rc,
+                          const uint8_t *ret_buf,
+                          size_t ret_buf_len)
 {
     uint8_t cbor[MAX_CBOR];
     uint8_t raw[MAX_RAW_FRAME];
@@ -98,6 +100,11 @@ static void send_response(int64_t seq,
     uint32_t crc;
     QCBOREncodeContext ctx;
     UsefulBufC encoded;
+    UsefulBufC __ret_buf;
+    cobs_encode_result cr;
+
+    __ret_buf.ptr = ret_buf;
+    __ret_buf.len = ret_buf_len;
 
     QCBOREncode_Init(
         &ctx,
@@ -106,10 +113,9 @@ static void send_response(int64_t seq,
 
     QCBOREncode_OpenMap(&ctx);
     QCBOREncode_AddInt64ToMapSZ(&ctx, "seq", seq);
-    QCBOREncode_AddSZStringToMapSZ(&ctx, "status", status);
-    QCBOREncode_AddSZStringToMapSZ(&ctx, "result", result);
+    QCBOREncode_AddInt64ToMapSZ(&ctx, "rc", (int64_t)rc);
+    QCBOREncode_AddBytesToMapSZ(&ctx, "ret_buf", __ret_buf);
     QCBOREncode_CloseMap(&ctx);
-
 
     if (QCBOREncode_Finish(&ctx, &encoded) != QCBOR_SUCCESS)
         return;
@@ -126,7 +132,7 @@ static void send_response(int64_t seq,
     raw_len = encoded.len + CRC_SIZE;
 
     /* COBS-encode payload plus CRC. Reserve one byte for delimiter. */
-    cobs_encode_result cr = cobs_encode(
+    cr = cobs_encode(
         frame,
         sizeof(frame) - 1,
         raw,
@@ -145,33 +151,32 @@ static void send_response(int64_t seq,
 /* =========================================================
  * Command dispatcher
  * ========================================================= */
-static bool execute_command(const char *cmd,
+static driver_cmd_rc_t execute_command(const char *cmd,
                             const uint8_t *arg,
                             size_t arg_len,
-                            const char **result)
+                            uint8_t *ret_buf,
+                            size_t *ret_buf_len)
 {
     if (strcmp(cmd, "ping") == 0) {
         if (arg_len != 0) {
-            *result = "bad_length";
-            return false;
+            return DRIVER_CMD_RC_INVALID_ARG;
         }
 
-        *result = "pong";
-        return true;
+        memcpy(ret_buf, "pong", sizeof("pong"));
+        *ret_buf_len = 4;
+        return DRIVER_CMD_RC_SUCCESS;
     }
 
     if (strcmp(cmd, "led_set") == 0) {
         if (arg_len != 1) {
-            *result = "bad_length";
-            return false;
+            return DRIVER_CMD_RC_INVALID_ARG;
         }
 
-        *result = arg[0] == 0 ? "led_off" : "led_on";
-        return true;
+        *ret_buf_len = 0;
+        return DRIVER_CMD_RC_SUCCESS;
     }
 
-    *result = "unknown_command";
-    return false;
+    return DRIVER_CMD_RC_UNKNOWN_CMD;
 }
 
 
@@ -181,14 +186,16 @@ static bool execute_command(const char *cmd,
  * ========================================================= */
 static void process_packet(const uint8_t *data, size_t len)
 {
+    driver_cmd_rc_t cmd_rc;
     QCBORDecodeContext ctx;
     int64_t seq = -1;
     const uint8_t *arg;
     UsefulBufC cmd_buf = NULLUsefulBufC;
     char cmd[32];
-    const char *result = "error";
     bool ok;
     UsefulBufC cmd_arg_buf = NULLUsefulBufC;
+    char ret_buf[RET_BUF_SIZE];
+    size_t ret_buf_len;
 
     QCBORDecode_Init(
         &ctx,
@@ -209,7 +216,7 @@ static void process_packet(const uint8_t *data, size_t len)
     }
 
     if (cmd_buf.len == 0 || cmd_buf.len >= sizeof(cmd)) {
-        send_response(seq, "NACK", "invalid_cmd");
+        send_response(seq, DRIVER_CMD_RC_INVALID_ARG, NULL, 0);
         return;
     }
 
@@ -218,9 +225,12 @@ static void process_packet(const uint8_t *data, size_t len)
 
     arg = (const uint8_t *)cmd_arg_buf.ptr;
 
-    ok = execute_command(cmd, arg, cmd_arg_buf.len, &result);
+    cmd_rc = execute_command(cmd, arg, 
+        cmd_arg_buf.len, ret_buf, &ret_buf_len);
 
-    send_response(seq, ok ? "ACK" : "NACK", result);
+    ASSERT(ret_buf_len <= RET_BUF_SIZE);
+
+    send_response(seq, cmd_rc, ret_buf, ret_buf_len);
 }
 
 
