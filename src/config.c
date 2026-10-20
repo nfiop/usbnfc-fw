@@ -146,23 +146,27 @@ static void send_response(int64_t seq,
  * Command dispatcher
  * ========================================================= */
 static bool execute_command(const char *cmd,
-                            int64_t arg,
+                            const uint8_t *arg,
+                            size_t arg_len,
                             const char **result)
 {
     if (strcmp(cmd, "ping") == 0) {
+        if (arg_len != 0) {
+            *result = "bad_length";
+            return false;
+        }
+
         *result = "pong";
         return true;
     }
 
     if (strcmp(cmd, "led_set") == 0) {
-        if (arg != 0 && arg != 1) {
-            *result = "invalid_arg";
+        if (arg_len != 1) {
+            *result = "bad_length";
             return false;
         }
 
-        /* gpio_put(LED_PIN, arg != 0); */
-
-        *result = arg ? "led_on" : "led_off";
+        *result = arg[0] == 0 ? "led_off" : "led_on";
         return true;
     }
 
@@ -178,13 +182,13 @@ static bool execute_command(const char *cmd,
 static void process_packet(const uint8_t *data, size_t len)
 {
     QCBORDecodeContext ctx;
-
     int64_t seq = -1;
-    int64_t arg = 0;
+    const uint8_t *arg;
     UsefulBufC cmd_buf = NULLUsefulBufC;
     char cmd[32];
     const char *result = "error";
     bool ok;
+    UsefulBufC cmd_arg_buf = NULLUsefulBufC;
 
     QCBORDecode_Init(
         &ctx,
@@ -195,7 +199,7 @@ static void process_packet(const uint8_t *data, size_t len)
     QCBORDecode_EnterMap(&ctx, NULL);
     QCBORDecode_GetInt64InMapSZ(&ctx, "seq", &seq);
     QCBORDecode_GetTextStringInMapSZ(&ctx, "cmd", &cmd_buf);
-    QCBORDecode_GetInt64InMapSZ(&ctx, "arg", &arg);
+    QCBORDecode_GetByteStringInMapSZ(&ctx, "arg", &cmd_arg_buf);
     QCBORDecode_ExitMap(&ctx);
 
     if (QCBORDecode_Finish(&ctx) != QCBOR_SUCCESS ||
@@ -212,7 +216,9 @@ static void process_packet(const uint8_t *data, size_t len)
     memcpy(cmd, cmd_buf.ptr, cmd_buf.len);
     cmd[cmd_buf.len] = '\0';
 
-    ok = execute_command(cmd, arg, &result);
+    arg = (const uint8_t *)cmd_arg_buf.ptr;
+
+    ok = execute_command(cmd, arg, cmd_arg_buf.len, &result);
 
     send_response(seq, ok ? "ACK" : "NACK", result);
 }
