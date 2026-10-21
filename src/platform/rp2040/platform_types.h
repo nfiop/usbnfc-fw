@@ -7,6 +7,5 @@
 #define __PLATFORM_RP2040_TYPES__H__
 
 #include "pico/types.h"
-#include <stddef.h>
 
 #endif

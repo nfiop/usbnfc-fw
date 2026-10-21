@@ -27,6 +27,11 @@ enum platform_mode determine_platform_mode(void)
     return PLATFORM_MODE_CONFIGURATION;
 }
 
+void *mem_realloc(void *ptr, size_t size)
+{
+    return realloc(ptr, size);
+}
+
 void *mem_alloc(size_t mem_size)
 {
     return malloc(mem_size);
@@ -35,6 +40,11 @@ void *mem_alloc(size_t mem_size)
 void *mem_alloc_counted(size_t count, size_t obj_size)
 {
     return mem_alloc(count * obj_size);
+}
+
+void mem_free(void *ptr)
+{
+    free(ptr);
 }
 
 void *mem_zalloc(size_t mem_size)
@@ -57,8 +67,7 @@ static void halt_forever(void)
 
 void send_msg_on_debug_uart(const char *msg)
 {
-    // TODO: Implement this.
-    UNUSED(msg);
+    uart_puts(uart0, msg);
 }
 
 void halt_all_cpus_from_core0(void)
@@ -114,9 +123,22 @@ static void setup_halt_interrupt(void)
     sio_hw->fifo_st = SIO_FIFO_ST_VLD_BITS;
 }
 
+static void enable_uart0(void)
+{
+    uart_init(uart0, 115200);
+
+    gpio_set_function(0, GPIO_FUNC_UART);  // GP0 = TX
+    gpio_set_function(1, GPIO_FUNC_UART);  // GP1 = RX
+
+    uart_puts(uart0, "UART enabled!\r\n");
+}
+
 int main(void)
 {
     setup_halt_interrupt();
     stdio_init_all();
+
+    enable_uart0();
+
     app_main();
 }

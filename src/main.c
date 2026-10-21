@@ -4,9 +4,10 @@
  */
 
 #include "platform/platform.h"
+#include "drivers/driver.h"
 
 extern int config_main(void);
-extern int nand_nfc_main(void);
+extern int nfc_main(void);
 
 /* First code to execute which is platform-agnostic. The platform-specific
  * init code should execute this after everything is stable and running -
@@ -20,6 +21,8 @@ int app_main(void)
 {
     enum platform_mode mode;
 
+    start_all_drivers();
+
     mode = determine_platform_mode();
 
     ASSERT(mode == PLATFORM_MODE_CONFIGURATION || 
@@ -28,6 +31,7 @@ int app_main(void)
     if (mode == PLATFORM_MODE_CONFIGURATION) {
         config_main();
     } else {
+        nfc_main();
     }
 
     halt();

@@ -10,6 +10,12 @@
 
 #define RET_BUF_SIZE 64
 
+typedef void (*init_driver_fn_t)(void);
+
+#define REGISTER_DRIVER_INIT(fn) \
+    static init_driver_fn_t const __ctor_##fn \
+    __attribute__((used, section("driver_init_ctors"))) = fn
+
 typedef enum {
     /* This indicates a ACK response, while any other
      * code should return a NACK with a specific error.
@@ -25,7 +31,7 @@ typedef enum {
 } driver_cmd_rc_t;
 
 struct driver_cmd {
-    char *cmd_name;
+    char *name;
     size_t arg_buf_size;
     bool requires_arg_buf;
     bool requires_ret_buf;
@@ -44,5 +50,13 @@ struct driver {
 };
 
 void register_driver(struct driver* driver);
+
+void start_all_drivers(void);
+
+driver_cmd_rc_t execute_driver_command(const char *cmd,
+                            const uint8_t *arg,
+                            size_t arg_len,
+                            uint8_t *ret_buf,
+                            size_t *ret_buf_len);
 
 #endif

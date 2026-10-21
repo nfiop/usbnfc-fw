@@ -29,11 +29,22 @@ inline void assert_with_msg(bool condition_has_met, const char *msg)
         halt_all_cpus();
     }
 }
-#define ASSERT(__x) assert_with_msg(__x, TO_STRING(x))
+
+inline void assert_not_reached_with_msg(const char *msg)
+{
+    send_msg_on_debug_uart("Assertion not reached!\n");
+    send_msg_on_debug_uart(msg);
+    halt_all_cpus();
+}
+
+#define ASSERT(__x) assert_with_msg(__x, TO_STRING(__x))
+#define ASSERT_NOT_REACHED(__msg) assert_not_reached_with_msg(__msg)
 
 void *mem_alloc(size_t);
+void *mem_realloc(void *, size_t);
 void *mem_alloc_counted(size_t, size_t);
 void *mem_zalloc(size_t);
+void mem_free(void *);
 
 int config_uart_send_bytes(const uint8_t *data, size_t len);
 int config_uart_read_non_blocking(uint8_t *data, size_t max_len);

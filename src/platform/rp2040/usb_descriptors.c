@@ -1,11 +1,18 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Liav A
+ */
 
 #include "tusb.h"
-#include <stdint.h>
+
+#include "platform/platform.h"
+#include "common/types.h"
 
 // Select this before tusb_init() on core 1.
 typedef enum {
     USB_MODE_CDC,
-    USB_MODE_VENDOR
+    USB_MODE_VENDOR_SPECIFIC_RAW_NFC,
+    USB_MODE_VENDOR_SPECIFIC_SPI_NFC,
 } usb_mode_t;
 
 static usb_mode_t usb_mode = USB_MODE_CDC;
@@ -21,14 +28,15 @@ enum {
 #define EP_CDC_OUT    0x02
 #define EP_CDC_IN     0x82
 
-#define EP_VENDOR_OUT 0x01
-#define EP_VENDOR_IN  0x81
-
 #define CDC_CONFIG_LEN \
     (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN)
 
 #define VENDOR_CONFIG_LEN \
     (TUD_CONFIG_DESC_LEN + TUD_VENDOR_DESC_LEN)
+
+#define NAND_VENDOR_SPECIFIC_EP_OUT        0x01
+#define NAND_VENDOR_SPECIFIC_EP_IN         0x81
+#define NAND_VENDOR_SPECIFIC_USB_EP_SIZE   64
 
 static const uint8_t cdc_config[] = {
     TUD_CONFIG_DESCRIPTOR(
@@ -43,23 +51,32 @@ static const uint8_t cdc_config[] = {
 
 static const uint8_t vendor_config[] = {
     TUD_CONFIG_DESCRIPTOR(
-        1, 1, 0, VENDOR_CONFIG_LEN,
-        TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100
+        1,                  // configuration number
+        1,                  // interface count
+        0,                  // configuration string
+        VENDOR_CONFIG_LEN,
+        TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP,
+        100                 // max power, in mA
     ),
+
     TUD_VENDOR_DESCRIPTOR(
-        ITF_VENDOR, 4, EP_VENDOR_OUT, EP_VENDOR_IN, 64
-    )
+        0,                  // interface number
+        4,                  // interface string index
+        NAND_VENDOR_SPECIFIC_EP_OUT,
+        NAND_VENDOR_SPECIFIC_EP_IN,
+        NAND_VENDOR_SPECIFIC_USB_EP_SIZE
+    ),
 };
 
-static const tusb_desc_device_t device_desc = {
+static const tusb_desc_device_t cdc_device_desc = {
     .bLength            = sizeof(tusb_desc_device_t),
     .bDescriptorType    = TUSB_DESC_DEVICE,
     .bcdUSB             = 0x0200,
-    .bDeviceClass       = 0x00,
+    .bDeviceClass       = 0x02,
     .bDeviceSubClass    = 0x00,
     .bDeviceProtocol    = 0x00,
     .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
-    .idVendor           = 0xCafe, // Replace with your assigned VID
+    .idVendor           = 0xCafe,
     .idProduct          = 0x4010,
     .bcdDevice          = 0x0100,
     .iManufacturer      = 1,
@@ -68,9 +85,50 @@ static const tusb_desc_device_t device_desc = {
     .bNumConfigurations = 1
 };
 
+static tusb_desc_device_t const raw_nfc_device_desc = {
+    .bLength            = sizeof(tusb_desc_device_t),
+    .bDescriptorType    = TUSB_DESC_DEVICE,
+    .bcdUSB             = 0x0200,
+    .bDeviceClass       = 0xFF,
+    .bDeviceSubClass    = 0x01, // Raw NAND interface
+    .bDeviceProtocol    = 0x00,
+    .bMaxPacketSize0    = 64,
+    .idVendor           = 0xCafe,
+    .idProduct          = 0x4010,
+    .bcdDevice          = 0x0100,
+    .iManufacturer      = 1,
+    .iProduct           = 2,
+    .iSerialNumber      = 3,
+    .bNumConfigurations = 1,
+};
+
+static tusb_desc_device_t const spi_nfc_device_desc = {
+    .bLength            = sizeof(tusb_desc_device_t),
+    .bDescriptorType    = TUSB_DESC_DEVICE,
+    .bcdUSB             = 0x0200,
+    .bDeviceClass       = 0xFF,
+    .bDeviceSubClass    = 0x02, // SPI interface
+    .bDeviceProtocol    = 0x00,
+    .bMaxPacketSize0    = 64,
+    .idVendor           = 0xCafe,
+    .idProduct          = 0x4010,
+    .bcdDevice          = 0x0100,
+    .iManufacturer      = 1,
+    .iProduct           = 2,
+    .iSerialNumber      = 3,
+    .bNumConfigurations = 1,
+};
+
 uint8_t const *tud_descriptor_device_cb(void)
 {
-    return (uint8_t const *)&device_desc;
+    if (usb_mode == USB_MODE_CDC)
+        return (uint8_t const *)&cdc_device_desc;
+    if (usb_mode == USB_MODE_VENDOR_SPECIFIC_RAW_NFC)
+        (uint8_t const *)&raw_nfc_device_desc;
+    if (usb_mode == USB_MODE_VENDOR_SPECIFIC_SPI_NFC)
+        (uint8_t const *)&spi_nfc_device_desc;
+
+    ASSERT_NOT_REACHED("Invalid usb_mode");
 }
 
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index)
@@ -87,26 +145,35 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index,
                                          uint16_t langid)
 {
     (void)langid;
-
+    unsigned n;
     static uint16_t desc[32];
     const char *str;
 
     switch (index) {
     case 0:
+        /* Language is US English */
         desc[1] = 0x0409;
         desc[0] = (TUSB_DESC_STRING << 8) | 4;
         return desc;
-    case 1: str = "NAND flash I/O platform"; break;
-    case 2: str = "USB NAND flash adapter (UART)"; break;
-    case 3: str = "000001"; break;
-    case 4: str = (usb_mode == USB_MODE_CDC)
+    case 1: 
+        str = "NAND flash I/O platform"; 
+        break;
+    case 2: 
+        str = (usb_mode == USB_MODE_CDC) ? 
+            "USB NAND flash adapter (UART)" : "USB NAND flash adapter"; 
+        break;
+    case 3: 
+        str = "000001"; 
+        break;
+    case 4: 
+        str = (usb_mode == USB_MODE_CDC)
                     ? "CDC Interface" : "Vendor Interface";
-            break;
+        break;
     default:
         return NULL;
     }
 
-    unsigned n = 0;
+    n = 0;
     while (str[n] && n < 31) {
         desc[n + 1] = (uint8_t)str[n];
         ++n;

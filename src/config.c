@@ -147,39 +147,6 @@ static void send_response(int64_t seq,
     config_uart_send_bytes(frame, cr.out_len + 1);
 }
 
-
-/* =========================================================
- * Command dispatcher
- * ========================================================= */
-static driver_cmd_rc_t execute_command(const char *cmd,
-                            const uint8_t *arg,
-                            size_t arg_len,
-                            uint8_t *ret_buf,
-                            size_t *ret_buf_len)
-{
-    if (strcmp(cmd, "ping") == 0) {
-        if (arg_len != 0) {
-            return DRIVER_CMD_RC_INVALID_ARG;
-        }
-
-        memcpy(ret_buf, "pong", sizeof("pong"));
-        *ret_buf_len = 4;
-        return DRIVER_CMD_RC_SUCCESS;
-    }
-
-    if (strcmp(cmd, "led_set") == 0) {
-        if (arg_len != 1) {
-            return DRIVER_CMD_RC_INVALID_ARG;
-        }
-
-        *ret_buf_len = 0;
-        return DRIVER_CMD_RC_SUCCESS;
-    }
-
-    return DRIVER_CMD_RC_UNKNOWN_CMD;
-}
-
-
 /* =========================================================
  * CBOR packet processing
  * Called only after CRC verification.
@@ -195,7 +162,7 @@ static void process_packet(const uint8_t *data, size_t len)
     bool ok;
     UsefulBufC cmd_arg_buf = NULLUsefulBufC;
     char ret_buf[RET_BUF_SIZE];
-    size_t ret_buf_len;
+    size_t ret_buf_len = RET_BUF_SIZE;
 
     QCBORDecode_Init(
         &ctx,
@@ -225,7 +192,7 @@ static void process_packet(const uint8_t *data, size_t len)
 
     arg = (const uint8_t *)cmd_arg_buf.ptr;
 
-    cmd_rc = execute_command(cmd, arg, 
+    cmd_rc = execute_driver_command(cmd, arg, 
         cmd_arg_buf.len, ret_buf, &ret_buf_len);
 
     ASSERT(ret_buf_len <= RET_BUF_SIZE);

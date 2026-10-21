@@ -14,6 +14,10 @@ add_executable(usbnfc_fw
     ${PLATFORM_SOURCES}
     main.c
     config.c
+    nfc.c
+
+    # Common code
+    common/hashmap.c
 
     # QCBOR
     lib/qcbor/src/UsefulBuf.c
@@ -23,6 +27,10 @@ add_executable(usbnfc_fw
 
     # COBS
     lib/cobs-c/cobs.c
+
+    # Common drivers
+    drivers/core.c
+    drivers/ping.c
 )
 
 target_include_directories(usbnfc_fw PRIVATE
