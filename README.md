@@ -35,12 +35,13 @@ The projects goals are to:
 
 These are the planned features for now; others could be added in as well
 where needed -
-   - Support for MCUs like the RP2040, STM32H5
+   - Support for platforms like the Raspberry Pi Pico board, STM32H5
+     Nucleo boards, etc.
 
    - Support for the [custom USB NAND flash controller](https://github.com/nfiop/custom-usb-nfc-adapter) project.
 
-   - Support for NAND drivers - JTAG BSR, raw GPIO, RP2040 PIOs, MCU
-     flash memory controller (like those in STM32 chips), SPI bus
+   - Support for NAND drivers - JTAG BSR, raw GPIO, RP2040 PIOs,
+     platform-native flash memory controllers.
 
    - Voltage domain & NAND timings control, when platform allows.
 
