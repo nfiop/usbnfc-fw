@@ -27,7 +27,9 @@ The projects goals are to:
    agnostic as possible to these details.
 
  - Standardize a configuration mechanism for a variety of use-cases 
-   related to NAND flash chips, via a known AT-command set.
+   related to NAND flash chips, which is based on the Linux ioctl
+   syscall semantics, based on COBS for framing and CBOR for packet
+   structure.
 
 ## Planned features
 
