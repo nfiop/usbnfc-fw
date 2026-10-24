@@ -117,7 +117,7 @@ static void config_mode_usb_worker(void)
     }
 }
 
-void start_config_mode(void (*rx_poll_timeout)(void))
+void start_test_uart_mode(void (*rx_poll_timeout)(void))
 {
     queue_init(&rx_queue, sizeof(uint8_t), CDC_QUEUE_SIZE);
     queue_init(&tx_queue, sizeof(uint8_t), CDC_QUEUE_SIZE);

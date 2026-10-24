@@ -20,11 +20,13 @@
 #define HALT_CPU_CMD 0xDEADBEEF
 
 extern int app_main(void);
+extern usb_mode_t g_usb_mode;
 
 enum platform_mode determine_platform_mode(void)
 {
     // TODO: Implement this.
-    return PLATFORM_MODE_CONFIGURATION;
+    g_usb_mode = USB_MODE_MSC;
+    return PLATFORM_MODE_MSC;
 }
 
 void *mem_realloc(void *ptr, size_t size)

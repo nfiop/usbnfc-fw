@@ -7,14 +7,22 @@
 #define __PLATFORM___H__
 
 #include "common/types.h"
+#include "drivers/driver.h"
 
 enum platform_mode {
-    PLATFORM_MODE_CONFIGURATION,
+    PLATFORM_MODE_MSC,
+    PLATFORM_MODE_DEBUG_AND_TEST,
     PLATFORM_MODE_NAND_CONTROLLER,
 };
 
-enum platform_mode determine_platform_mode(void);
+typedef enum {
+    USB_MODE_MSC,
+    USB_MODE_CDC,
+    USB_MODE_VENDOR_SPECIFIC_RAW_NFC,
+    USB_MODE_VENDOR_SPECIFIC_SPI_NFC,
+} usb_mode_t;
 
+enum platform_mode determine_platform_mode(void);
 
 void send_msg_on_debug_uart(const char *msg);
 
@@ -48,7 +56,16 @@ void mem_free(void *);
 
 int config_uart_send_bytes(const uint8_t *data, size_t len);
 int config_uart_read_non_blocking(uint8_t *data, size_t max_len);
-void start_config_mode(void (*rx_poll_timeout)(void));
+void start_test_uart_mode(void (*rx_poll_timeout)(void));
+
+/* In contrast to other modes, this mode is strictly 
+ * implemented by the platform and there's little intervention
+ * by "generic" code.
+ * The platform should provide a USB mass-storage mode to allow
+ * a user to submit their configuration file. 
+ */
+void start_msc_config_mode(void);
+
 
 /* This macro is inspired from the Linux kernel - it should allocate
  * a memory area and zero it afterwards.

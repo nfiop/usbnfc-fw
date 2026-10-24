@@ -13,7 +13,7 @@ include(${CMAKE_SOURCE_DIR}/platform/${CMAKE_PLATFORM}/platform.cmake)
 add_executable(usbnfc_fw
     ${PLATFORM_SOURCES}
     main.c
-    config.c
+    debug.c
     nfc.c
 
     # Common code

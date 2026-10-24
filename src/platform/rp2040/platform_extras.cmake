@@ -5,6 +5,8 @@ target_link_libraries(usbnfc_fw
     pico_multicore
     pico_sync
     tinyusb_device
+    pico_flash
+    hardware_flash
 )
 
 pico_add_linker_script_override_path(

@@ -311,12 +311,12 @@ static void rx_byte(uint8_t b)
     rx_frame[rx_len++] = b;
 }
 
-int config_main(void)
+int test_and_debug_main(void)
 {
     uint8_t ch;
     int ret;
 
-    start_config_mode(rx_poll_timeout);
+    start_test_uart_mode(rx_poll_timeout);
 
     while (true) {
         rx_poll_timeout();

@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(PLATFORM_SOURCES 
     ${CMAKE_CURRENT_LIST_DIR}/platform.c
-    ${CMAKE_CURRENT_LIST_DIR}/config_mode.c
+    ${CMAKE_CURRENT_LIST_DIR}/modes/config.c
+    ${CMAKE_CURRENT_LIST_DIR}/modes/debug.c
     ${CMAKE_CURRENT_LIST_DIR}/usb_descriptors.c)
 
 # ${PICO_SDK_PATH} is declared in sdk.cmake file.

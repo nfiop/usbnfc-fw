@@ -19,6 +19,8 @@ extern "C" {
 #define CFG_TUD_ENABLED           1
 #define CFG_TUH_ENABLED           0
 
+#define CFG_TUD_MSC_EP_BUFSIZE      512
+
 #define CFG_TUD_MAX_SPEED         OPT_MODE_FULL_SPEED
 
 // USB memory alignment
@@ -41,9 +43,9 @@ extern "C" {
 
 #define CFG_TUD_CDC               1
 #define CFG_TUD_VENDOR            1
+#define CFG_TUD_MSC               1
 
 // Explicitly disable unused classes
-#define CFG_TUD_MSC               0
 #define CFG_TUD_HID               0
 #define CFG_TUD_MIDI              0
 #define CFG_TUD_AUDIO             0
