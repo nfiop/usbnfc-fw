@@ -7,7 +7,8 @@
 
 int nfc_main(void)
 {
-    while (true) {}
+	while (true) {
+	}
 
-    return 0;
+	return 0;
 }

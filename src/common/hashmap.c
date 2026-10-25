@@ -2,7 +2,7 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-/* This is a reduced version of the original implementation - 
+/* This is a reduced version of the original implementation -
  * there is no benchmarking code, nor any ordinary include to stdlib.h
  * as well.
  */

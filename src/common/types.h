@@ -11,7 +11,8 @@
  *
  * IMPORTANT NOTE:
  * All platforms should provide the basic set of headers below through their
- * SDK, or provide **equivalent** headers if their SDK doesn't supply such headers.
+ * SDK, or provide **equivalent** headers if their SDK doesn't supply such
+ * headers.
  *
  * For malloc-like operations, see platform/platform.h - each platform might
  * implement it in a different way (even a simple bump allocator is valid
